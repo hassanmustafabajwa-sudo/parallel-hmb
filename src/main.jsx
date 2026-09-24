@@ -34,7 +34,7 @@ function Engine({visible}){
 }
 
 function ProceduralCar({progress}){
- const root=useRef(),body=useRef(),cabin=useRef(),wing=useRef(),engine=useRef();
+ const root=useRef(),body=useRef(),cabin=useRef(),wing=useRef(),engine=useRef(),wheels=useRef();
  const {camera}=useThree();
  useFrame((state,delta)=>{
   const e=1-Math.pow(.001,delta),p=progress.current;
@@ -74,6 +74,17 @@ function ProceduralCar({progress}){
   wing.current.rotation.z=THREE.MathUtils.lerp(wing.current.rotation.z,s*-.18,e);
   engine.current.scale.setScalar(THREE.MathUtils.lerp(engine.current.scale.x,p>.7?1:0.001,e));
   engine.current.position.x=THREE.MathUtils.lerp(engine.current.position.x,p>.7?-.28:-.3,e);
+  if(wheels.current){
+   const wheelSpread=s*.34;
+   wheels.current.children.forEach((w,i)=>{
+    const side=i%2===0?1:-1;
+    const front=i<2?1:-1;
+    w.position.x=THREE.MathUtils.lerp(w.position.x,front*(.78+wheelSpread),e);
+    w.position.y=THREE.MathUtils.lerp(w.position.y,.31+s*.12,e);
+    w.position.z=THREE.MathUtils.lerp(w.position.z,side*(.59+wheelSpread*.55),e);
+    w.rotation.y=THREE.MathUtils.lerp(w.rotation.y,side*s*.12,e);
+   });
+  }
  });
  return <group ref={root}>
   <group position={[0,0,0]}>
@@ -99,7 +110,7 @@ function ProceduralCar({progress}){
   </group>
   <group ref={wing}><Aero position={[-1.02,.73,0]} scale={[.72,1,1.1]}/><mesh position={[-1.18,.64,0]} scale={[.08,.28,.86]}><boxGeometry args={[1,1,1]}/><meshStandardMaterial color="#171717" metalness={.9}/></mesh></group>
   <Aero position={[1.05,.28,.48]} rotation={[0,0,-.12]} scale={[.75,1,.7]}/><Aero position={[1.05,.28,-.48]} rotation={[0,0,-.12]} scale={[.75,1,.7]}/>
-  <Wheel position={[.78,.31,.59]} side={1}/><Wheel position={[.78,.31,-.59]} side={-1}/><Wheel position={[-.86,.31,.59]} side={1}/><Wheel position={[-.86,.31,-.59]} side={-1}/>
+  <group ref={wheels}><Wheel position={[.78,.31,.59]} side={1}/><Wheel position={[.78,.31,-.59]} side={-1}/><Wheel position={[-.86,.31,.59]} side={1}/><Wheel position={[-.86,.31,-.59]} side={-1}/></group>
   <group ref={engine}><Engine visible/></group>
  </group>
 }
