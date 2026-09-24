@@ -95,13 +95,14 @@ function Scene({progress}){return <Canvas dpr={[1,1.7]} gl={{antialias:true}} sh
 const facts=[['01','AERODYNAMICS','Air becomes structure. Every surface earns its place.'],['02','POWERTRAIN','Twin-turbo V8. 720 horsepower. Response without delay.'],['03','COCKPIT','A driver-first interior reduced to the essential.']];
 
 function App(){
- const [menu,setMenu]=useState(false),[hotspot,setHotspot]=useState(null);
+ const [menu,setMenu]=useState(false),[hotspot,setHotspot]=useState(null),[pointer,setPointer]=useState({x:0,y:0});
  const progress=useRef(0),{scrollYProgress}=useScroll(); const revealRef=useRef(null);
+ useEffect(()=>{const move=e=>setPointer({x:e.clientX/window.innerWidth-.5,y:e.clientY/window.innerHeight-.5});window.addEventListener('pointermove',move,{passive:true});return()=>window.removeEventListener('pointermove',move)},[]);
  useEffect(()=>{const on=()=>progress.current=clamp(window.scrollY/(document.body.scrollHeight-window.innerHeight),0,1);on();window.addEventListener('scroll',on,{passive:true});const lenis=new Lenis({duration:1.15,smoothWheel:true,syncTouch:true});let raf=t=>{lenis.raf(t);requestAnimationFrame(raf)};requestAnimationFrame(raf);return()=>{window.removeEventListener('scroll',on);lenis.destroy()}},[]);
  useEffect(()=>{if(revealRef.current){gsap.fromTo(revealRef.current,{clipPath:'inset(0 100% 0 0)'},{clipPath:'inset(0 0% 0 0)',duration:1.5,ease:'power4.inOut',delay:.15})}},[]);
  const heroOpacity=useTransform(scrollYProgress,[0,.13],[1,0]),heroY=useTransform(scrollYProgress,[0,.22],[0,-130]);
  return <main>
-  <div className="fixed-scene"><Scene progress={progress}/><div className="scene-vignette"/><div className="scene-caption"><span>R1 / DEVELOPMENT 001</span><span>SCROLL-CHOREOGRAPHED MACHINE</span></div></div>
+  <div className="pointer-glow" style={{transform:`translate3d(${pointer.x*42}px,${pointer.y*42}px,0)`}}/><div className="fixed-scene"><Scene progress={progress}/><div className="scene-vignette"/><div className="scene-caption"><span>R1 / DEVELOPMENT 001</span><span>SCROLL-CHOREOGRAPHED MACHINE</span></div></div>
   <header className="nav"><a className="brand">PARALLEL<span>/</span>R1</a><div className="nav-center">VANTA AUTOMOTIVE · 2026</div><div className="nav-links"><a href="#machine">Machine</a><a href="#details">Details</a><a href="#contact">Enquire</a></div><button className="menu" aria-label="Menu" onClick={()=>setMenu(!menu)}>{menu?<X/>:<Menu/>}</button></header>
   {menu&&<div className="mobile-menu"><a href="#machine" onClick={()=>setMenu(false)}>Machine</a><a href="#details" onClick={()=>setMenu(false)}>Details</a><a href="#contact" onClick={()=>setMenu(false)}>Enquire</a></div>}
   <section className="hero"><div ref={revealRef} className="hero-reveal-line"/><motion.div style={{opacity:heroOpacity,y:heroY}} className="hero-copy"><p className="eyebrow">PARALLEL AUTOMOTIVE · 001</p><h1>VANTA<br/><em>R1</em></h1><p className="hero-sub">A machine sculpted around motion.</p></motion.div><motion.div style={{opacity:heroOpacity}} className="scroll-hint"><MousePointer2 size={14}/> Scroll to deconstruct <ArrowDown size={14}/></motion.div></section>
