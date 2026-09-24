@@ -42,9 +42,25 @@ function ProceduralCar({progress}){
   root.current.position.y=THREE.MathUtils.lerp(root.current.position.y,.04+Math.sin(state.clock.elapsedTime*.65)*.025,e);
   root.current.position.x=THREE.MathUtils.lerp(root.current.position.x,p>.7?(p-.7)*2.4:0,e);
   root.current.scale.setScalar(1.62+(p>.82?(p-.82)*1.4:0));
-  camera.position.x=THREE.MathUtils.lerp(camera.position.x,4.7+Math.sin(p*Math.PI*1.5)*1.35,e);
-  camera.position.y=THREE.MathUtils.lerp(camera.position.y,2.15+Math.sin(p*Math.PI)*.75,e);
-  camera.position.z=THREE.MathUtils.lerp(camera.position.z,6.25-p*.95,e);camera.lookAt(0,.48,0);
+  const shots=[
+   {a:0,b:.2,pos:[5.4,1.35,7.4],look:[0,.42,0],fov:36},
+   {a:.2,b:.35,pos:[4.8,1.8,6],look:[0,.5,0],fov:39},
+   {a:.35,b:.5,pos:[3.25,.92,4.15],look:[0,.58,-.95],fov:32},
+   {a:.5,b:.65,pos:[5.6,2.25,6.15],look:[0,.72,0],fov:41},
+   {a:.65,b:.8,pos:[1.85,1.25,3.35],look:[0,.9,0],fov:35},
+   {a:.8,b:.92,pos:[3.1,1.15,3.65],look:[0,.58,.65],fov:34},
+   {a:.92,b:1,pos:[5.15,1.5,7],look:[0,.48,0],fov:37}
+  ];
+  const shot=shots.find(s=>p>=s.a&&p<s.b)||shots[6];
+  const local=THREE.MathUtils.clamp((p-shot.a)/(shot.b-shot.a),0,1);
+  const easeShot=local*local*(3-2*local);
+  const orbitX=p<.35?Math.sin(p*Math.PI*2.9)*1.15:0;
+  camera.position.x=THREE.MathUtils.lerp(camera.position.x,shot.pos[0]+orbitX,e);
+  camera.position.y=THREE.MathUtils.lerp(camera.position.y,shot.pos[1],e);
+  camera.position.z=THREE.MathUtils.lerp(camera.position.z,shot.pos[2],e);
+  camera.fov=THREE.MathUtils.lerp(camera.fov,shot.fov,e*1.5);
+  camera.updateProjectionMatrix();
+  camera.lookAt(shot.look[0],shot.look[1],shot.look[2]);
   body.current.position.y=THREE.MathUtils.lerp(body.current.position.y,p>.6?(p-.6)*.62:0,e);
   cabin.current.position.y=THREE.MathUtils.lerp(cabin.current.position.y,p>.6?(p-.6)*1.1:0,e);
   wing.current.position.y=THREE.MathUtils.lerp(wing.current.position.y,p>.6?(p-.6)*1.55:0,e);
