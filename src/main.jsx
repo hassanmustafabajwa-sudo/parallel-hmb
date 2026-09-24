@@ -1,4 +1,4 @@
-import React,{useEffect,useRef,useState} from 'react';
+import React,{Suspense,useEffect,useMemo,useRef,useState} from 'react';
 import {createRoot} from 'react-dom/client';
 import {Canvas,useFrame,useThree} from '@react-three/fiber';
 import {Environment,ContactShadows,PerspectiveCamera,Float,MeshTransmissionMaterial,Text,useGLTF} from '@react-three/drei';
@@ -33,8 +33,75 @@ function Engine({visible}){
  </group>
 }
 
-function RealCar({progress}){const {scene}=useGLTF('https://raw.githubusercontent.com/studio-public-demos/car-concept-3d-dashboard/main/CarConcept.glb');const {camera}=useThree();const root=useRef(),parts=useRef([]);useEffect(()=>{parts.current=[];scene.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;const n=o.name.toLowerCase();let type=/wheel|tire|rim/.test(n)?'wheel':/glass|window|windshield/.test(n)?'glass':/wing|spoiler|aero/.test(n)?'wing':/engine|motor|power/.test(n)?'engine':'body';parts.current.push({o,type,base:o.position.clone(),rot:o.rotation.clone()})}})},[scene]);useFrame((state,delta)=>{const p=progress.current,e=1-Math.pow(.001,delta),sep=THREE.MathUtils.clamp((p-.55)/.38,0,1),s=sep*sep*(3-2*sep);if(!root.current)return;root.current.rotation.y=THREE.MathUtils.lerp(root.current.rotation.y,-.45+p*Math.PI*2.05,e);root.current.position.y=THREE.MathUtils.lerp(root.current.position.y,.02+Math.sin(state.clock.elapsedTime*.7)*.018,e);root.current.scale.setScalar(2.15);const shots=[{a:0,b:.2,pos:[5.2,1.45,7.2],look:[0,.55,0],fov:37},{a:.2,b:.35,pos:[4.5,1.8,5.8],look:[0,.62,0],fov:40},{a:.35,b:.5,pos:[2.9,1.05,3.8],look:[0,.55,-.85],fov:31},{a:.5,b:.65,pos:[5.3,2.3,6],look:[0,.7,0],fov:42},{a:.65,b:.8,pos:[1.9,1.35,3.25],look:[0,.85,0],fov:34},{a:.8,b:.92,pos:[3,1.15,3.5],look:[0,.58,.55],fov:33},{a:.92,b:1,pos:[5,1.5,6.8],look:[0,.5,0],fov:37}];const shot=shots.find(x=>p>=x.a&&p<x.b)||shots[6];camera.position.x=THREE.MathUtils.lerp(camera.position.x,shot.pos[0],e);camera.position.y=THREE.MathUtils.lerp(camera.position.y,shot.pos[1],e);camera.position.z=THREE.MathUtils.lerp(camera.position.z,shot.pos[2],e);camera.fov=THREE.MathUtils.lerp(camera.fov,shot.fov,e);camera.updateProjectionMatrix();camera.lookAt(...shot.look);parts.current.forEach(({o,type,base,rot},i)=>{let x=base.x,y=base.y,z=base.z;if(type==='body'){y+=s*.12;z+=s*(i%2?.05:-.05)}if(type==='glass'){y+=s*.55;z-=s*.12}if(type==='wing'){y+=s*.9;z-=s*.28;x+=s*.12}if(type==='engine'){y+=s*.72;z+=s*.25;x-=s*.12}if(type==='wheel'){x+=s*(base.x>0?.32:-.32);z+=s*(base.z>0?.28:-.28);y+=s*.12;o.rotation.y=rot.y+(base.z>0?s*.12:-s*.12)}o.position.x=THREE.MathUtils.lerp(o.position.x,x,e);o.position.y=THREE.MathUtils.lerp(o.position.y,y,e);o.position.z=THREE.MathUtils.lerp(o.position.z,z,e)})});return <primitive ref={root} object={scene} dispose={null}/>}
-useGLTF.preload('https://raw.githubusercontent.com/studio-public-demos/car-concept-3d-dashboard/main/CarConcept.glb');
+const CAR_URL='https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Assets/main/Models/CarConcept/GLB/CarConcept.glb';
+
+function RealCar({progress}){
+ const {scene}=useGLTF(CAR_URL);
+ const {camera}=useThree();
+ const root=useRef(), model=useMemo(()=>scene.clone(true),[scene]), parts=useRef([]);
+ const normalized=useRef(false);
+
+ useEffect(()=>{
+  if(normalized.current)return;
+  normalized.current=true;
+  const box=new THREE.Box3().setFromObject(model),size=box.getSize(new THREE.Vector3()),center=box.getCenter(new THREE.Vector3());
+  const max=Math.max(size.x,size.y,size.z)||1;
+  model.position.sub(center);
+  model.scale.setScalar(3.2/max);
+  parts.current=[];
+  model.traverse(o=>{
+   if(!o.isMesh)return;
+   o.castShadow=true;o.receiveShadow=true;
+   const n=o.name.toLowerCase();
+   const type=/wheel|tire|rim/.test(n)?'wheel':/glass|window|windshield/.test(n)?'glass':/wing|spoiler|aero/.test(n)?'wing':/hood|bonnet|hatch|door/.test(n)?'panel':'body';
+   parts.current.push({o,type,base:o.position.clone(),rot:o.rotation.clone()});
+  });
+ },[model]);
+
+ useFrame((state,delta)=>{
+  const p=progress.current,e=1-Math.pow(.001,delta);
+  if(!root.current)return;
+  const sep=THREE.MathUtils.clamp((p-.55)/.4,0,1),s=sep*sep*(3-2*sep);
+  root.current.rotation.y=THREE.MathUtils.lerp(root.current.rotation.y,-.5+p*Math.PI*2.05,e);
+  root.current.position.y=THREE.MathUtils.lerp(root.current.position.y,.03+Math.sin(state.clock.elapsedTime*.65)*.012,e);
+
+  const shots=[
+   {a:0,b:.18,pos:[4.9,1.35,6.8],look:[0,.1,0],fov:38},
+   {a:.18,b:.34,pos:[4.2,1.55,5.2],look:[0,.05,0],fov:40},
+   {a:.34,b:.5,pos:[2.5,.85,3.15],look:[0,.05,-.75],fov:32},
+   {a:.5,b:.66,pos:[4.9,2.05,5.6],look:[0,.15,0],fov:43},
+   {a:.66,b:.8,pos:[1.75,1.15,2.9],look:[0,.1,0],fov:35},
+   {a:.8,b:.93,pos:[2.8,1.05,3.2],look:[0,.05,.55],fov:34},
+   {a:.93,b:1,pos:[4.8,1.35,6.5],look:[0,.08,0],fov:38}
+  ];
+  const shot=shots.find(x=>p>=x.a&&p<x.b)||shots[6];
+  camera.position.x=THREE.MathUtils.lerp(camera.position.x,shot.pos[0],e);
+  camera.position.y=THREE.MathUtils.lerp(camera.position.y,shot.pos[1],e);
+  camera.position.z=THREE.MathUtils.lerp(camera.position.z,shot.pos[2],e);
+  camera.fov=THREE.MathUtils.lerp(camera.fov,shot.fov,e);
+  camera.updateProjectionMatrix();
+  camera.lookAt(...shot.look);
+
+  parts.current.forEach(({o,type,base,rot},i)=>{
+   let x=base.x,y=base.y,z=base.z;
+   if(type==='body'){y+=s*.08;z+=s*(i%2?.035:-.035)}
+   if(type==='panel'){y+=s*(.18+(i%3)*.12);z+=s*(i%2?.09:-.09)}
+   if(type==='glass'){y+=s*.34;z-=s*.1}
+   if(type==='wing'){y+=s*.58;z-=s*.2}
+   if(type==='wheel'){x+=s*(base.x>0?.22:-.22);z+=s*(base.z>0?.2:-.2);o.rotation.y=rot.y+(base.z>0?s*.08:-s*.08)}
+   o.position.x=THREE.MathUtils.lerp(o.position.x,x,e);
+   o.position.y=THREE.MathUtils.lerp(o.position.y,y,e);
+   o.position.z=THREE.MathUtils.lerp(o.position.z,z,e);
+  });
+ });
+ return <group ref={root}><primitive object={model} dispose={null}/></group>;
+}
+useGLTF.preload(CAR_URL);
+
+function CarFallback(){
+ return <mesh rotation={[0,.35,0]} castShadow><boxGeometry args={[3,.5,1.35]}/><meshStandardMaterial color="#111" metalness={.9} roughness={.18}/></mesh>;
+}
+
 
 function CinematicLights({progress}){const head=useRef(),brake=useRef(),engine=useRef();useFrame((state,delta)=>{const p=progress.current,e=1-Math.pow(.001,delta);const pulse=.82+Math.sin(state.clock.elapsedTime*5.5)*.12;if(head.current)head.current.intensity=THREE.MathUtils.lerp(head.current.intensity,p<.18?3.5:11,e);if(brake.current)brake.current.intensity=THREE.MathUtils.lerp(brake.current.intensity,p>.82?pulse*8:0,e);if(engine.current)engine.current.intensity=THREE.MathUtils.lerp(engine.current.intensity,p>.7?5:0,e)});return <><pointLight ref={head} position={[1.8,.9,2.3]} intensity={8} distance={6} color="#f7f7f2"/><pointLight ref={brake} position={[-1.8,.72,-1.8]} intensity={0} distance={4} color="#ff2018"/><pointLight ref={engine} position={[-.4,1.25,0]} intensity={0} distance={3.5} color="#d9d9d9"/></>}
 
