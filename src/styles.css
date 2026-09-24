@@ -4,3 +4,22 @@
 @media(max-width:700px){.scene-progress{left:20px;height:120px}.scene-progress>div{height:78px}}
 .hero{overflow:hidden}.hero-reveal-line{position:absolute;left:7vw;top:50%;width:70vw;height:1px;background:rgba(255,255,255,.28);transform:translateY(-50%);pointer-events:none;z-index:-1}.hero-reveal-line:after{content:"";position:absolute;right:0;top:-2px;width:5px;height:5px;border-radius:50%;background:#eee;box-shadow:0 0 18px rgba(255,255,255,.7)}
 @media(max-width:700px){.hero-reveal-line{left:20px;width:82vw;top:48%;opacity:.7}}
+.scene-mode{
+ position:absolute;
+ right:42px;
+ bottom:42px;
+ font:8px 'DM Mono',monospace;
+ letter-spacing:.22em;
+ color:#666;
+ transition:opacity .35s ease,transform .35s ease;
+}
+.scene-mode[data-mode="reveal"]{color:#888}
+.scene-mode[data-mode="orbit"]{color:#aaa}
+.scene-mode[data-mode="macro"]{color:#bbb}
+.scene-mode[data-mode="separate"]{color:#ddd}
+.scene-mode[data-mode="cockpit"]{color:#eee}
+.scene-mode[data-mode="powertrain"]{color:#fff}
+.scene-mode[data-mode="reassemble"]{color:#aaa}
+@media(max-width:700px){
+ .scene-mode{right:20px;bottom:28px;font-size:7px}
+}
