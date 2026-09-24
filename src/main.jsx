@@ -33,87 +33,8 @@ function Engine({visible}){
  </group>
 }
 
-function ProceduralCar({progress}){
- const root=useRef(),body=useRef(),cabin=useRef(),wing=useRef(),engine=useRef(),wheels=useRef();
- const {camera}=useThree();
- useFrame((state,delta)=>{
-  const e=1-Math.pow(.001,delta),p=progress.current;
-  root.current.rotation.y=THREE.MathUtils.lerp(root.current.rotation.y,-.5+p*Math.PI*2.15,e);
-  root.current.position.y=THREE.MathUtils.lerp(root.current.position.y,.04+Math.sin(state.clock.elapsedTime*.65)*.025,e);
-  root.current.position.x=THREE.MathUtils.lerp(root.current.position.x,p>.7?(p-.7)*2.4:0,e);
-  root.current.scale.setScalar(1.62+(p>.82?(p-.82)*1.4:0));
-  const shots=[
-   {a:0,b:.2,pos:[5.4,1.35,7.4],look:[0,.42,0],fov:36},
-   {a:.2,b:.35,pos:[4.8,1.8,6],look:[0,.5,0],fov:39},
-   {a:.35,b:.5,pos:[3.25,.92,4.15],look:[0,.58,-.95],fov:32},
-   {a:.5,b:.65,pos:[5.6,2.25,6.15],look:[0,.72,0],fov:41},
-   {a:.65,b:.8,pos:[1.85,1.25,3.35],look:[0,.9,0],fov:35},
-   {a:.8,b:.92,pos:[3.1,1.15,3.65],look:[0,.58,.65],fov:34},
-   {a:.92,b:1,pos:[5.15,1.5,7],look:[0,.48,0],fov:37}
-  ];
-  const shot=shots.find(s=>p>=s.a&&p<s.b)||shots[6];
-  const local=THREE.MathUtils.clamp((p-shot.a)/(shot.b-shot.a),0,1);
-  const easeShot=local*local*(3-2*local);
-  const orbitX=p<.35?Math.sin(p*Math.PI*2.9)*1.15:0;
-  camera.position.x=THREE.MathUtils.lerp(camera.position.x,shot.pos[0]+orbitX,e);
-  camera.position.y=THREE.MathUtils.lerp(camera.position.y,shot.pos[1],e);
-  camera.position.z=THREE.MathUtils.lerp(camera.position.z,shot.pos[2],e);
-  camera.fov=THREE.MathUtils.lerp(camera.fov,shot.fov,e*1.5);
-  camera.updateProjectionMatrix();
-  camera.lookAt(shot.look[0],shot.look[1],shot.look[2]);
-  const sep=THREE.MathUtils.clamp((p-.58)/.34,0,1);
-  const s=sep*sep*(3-2*sep);
-  body.current.position.y=THREE.MathUtils.lerp(body.current.position.y,s*.38,e);
-  body.current.position.z=THREE.MathUtils.lerp(body.current.position.z,s*.12,e);
-  body.current.rotation.z=THREE.MathUtils.lerp(body.current.rotation.z,s*-.035,e);
-  cabin.current.position.y=THREE.MathUtils.lerp(cabin.current.position.y,s*.92,e);
-  cabin.current.position.z=THREE.MathUtils.lerp(cabin.current.position.z,s*-.18,e);
-  cabin.current.rotation.z=THREE.MathUtils.lerp(cabin.current.rotation.z,s*.045,e);
-  wing.current.position.y=THREE.MathUtils.lerp(wing.current.position.y,s*1.48,e);
-  wing.current.position.z=THREE.MathUtils.lerp(wing.current.position.z,s*-.32,e);
-  wing.current.rotation.z=THREE.MathUtils.lerp(wing.current.rotation.z,s*-.18,e);
-  engine.current.scale.setScalar(THREE.MathUtils.lerp(engine.current.scale.x,p>.7?1:0.001,e));
-  engine.current.position.x=THREE.MathUtils.lerp(engine.current.position.x,p>.7?-.28:-.3,e);
-  if(wheels.current){
-   const wheelSpread=s*.34;
-   wheels.current.children.forEach((w,i)=>{
-    const side=i%2===0?1:-1;
-    const front=i<2?1:-1;
-    w.position.x=THREE.MathUtils.lerp(w.position.x,front*(.78+wheelSpread),e);
-    w.position.y=THREE.MathUtils.lerp(w.position.y,.31+s*.12,e);
-    w.position.z=THREE.MathUtils.lerp(w.position.z,side*(.59+wheelSpread*.55),e);
-    w.rotation.y=THREE.MathUtils.lerp(w.rotation.y,side*s*.12,e);
-   });
-  }
- });
- return <group ref={root}>
-  <group position={[0,0,0]}>
-   <Aero position={[1.55,.42,.52]} rotation={[0,.08,-.05]} scale={[.9,1,1]}/>
-   <Aero position={[1.55,.42,-.52]} rotation={[0,-.08,-.05]} scale={[.9,1,1]}/>
-   <Aero position={[-1.45,.44,.58]} rotation={[0,.18,.03]} scale={[1.15,1,1]}/>
-   <Aero position={[-1.45,.44,-.58]} rotation={[0,-.18,.03]} scale={[1.15,1,1]}/>
-  </group>
-  <group ref={body}>
-   <mesh position={[0,.42,0]} scale={[2.65,.34,1.04]} castShadow><boxGeometry args={[1,1,1]}/><meshPhysicalMaterial color="#bfc1c2" metalness={.98} roughness={.11} clearcoat={1} clearcoatRoughness={.05}/></mesh>
-   <mesh position={[.62,.54,0]} scale={[1.1,.23,.95]} rotation={[0,0,-.08]}><boxGeometry args={[1,1,1]}/><meshPhysicalMaterial color="#aeb1b2" metalness={.98} roughness={.1}/></mesh>
-   <mesh position={[-1.08,.48,0]} scale={[.65,.18,1.05]}><boxGeometry args={[1,1,1]}/><meshStandardMaterial color="#d5d7d8" metalness={.95} roughness={.15}/></mesh>
-   <mesh position={[1.15,.48,0]} scale={[.55,.16,1]}><boxGeometry args={[1,1,1]}/><meshStandardMaterial color="#d5d7d8" metalness={.95} roughness={.15}/></mesh>
-   <mesh position={[1.31,.59,.39]} scale={[.38,.055,.065]}><boxGeometry args={[1,1,1]}/><meshStandardMaterial color="#f7f7f2" emissive="#fff" emissiveIntensity={7}/></mesh>
-   <mesh position={[1.31,.59,-.39]} scale={[.38,.055,.065]}><boxGeometry args={[1,1,1]}/><meshStandardMaterial color="#f7f7f2" emissive="#fff" emissiveIntensity={7}/></mesh>
-   <mesh position={[-1.33,.55,.4]} scale={[.28,.05,.065]}><boxGeometry args={[1,1,1]}/><meshStandardMaterial color="#ff261e" emissive="#ff1008" emissiveIntensity={3}/></mesh>
-   <mesh position={[-1.33,.55,-.4]} scale={[.28,.05,.065]}><boxGeometry args={[1,1,1]}/><meshStandardMaterial color="#ff261e" emissive="#ff1008" emissiveIntensity={3}/></mesh>
-   <Aero position={[-1.42,.3,0]} scale={[.55,1,1]}/>
-  </group>
-  <group ref={cabin}>
-   <mesh position={[.05,.83,0]} scale={[1.25,.42,.82]} rotation={[0,0,-.08]}><MeshTransmissionMaterial transmission={.5} thickness={.12} roughness={.04} chromaticAberration={.03} ior={1.45} color="#101214"/></mesh>
-   <mesh position={[-.32,.85,0]} scale={[.56,.26,.77]} rotation={[0,0,-.1]}><boxGeometry args={[1,1,1]}/><meshStandardMaterial color="#080808" metalness={.4} roughness={.08}/></mesh>
-  </group>
-  <group ref={wing}><Aero position={[-1.02,.73,0]} scale={[.72,1,1.1]}/><mesh position={[-1.18,.64,0]} scale={[.08,.28,.86]}><boxGeometry args={[1,1,1]}/><meshStandardMaterial color="#171717" metalness={.9}/></mesh></group>
-  <Aero position={[1.05,.28,.48]} rotation={[0,0,-.12]} scale={[.75,1,.7]}/><Aero position={[1.05,.28,-.48]} rotation={[0,0,-.12]} scale={[.75,1,.7]}/>
-  <group ref={wheels}><Wheel position={[.78,.31,.59]} side={1}/><Wheel position={[.78,.31,-.59]} side={-1}/><Wheel position={[-.86,.31,.59]} side={1}/><Wheel position={[-.86,.31,-.59]} side={-1}/></group>
-  <group ref={engine}><Engine visible/></group>
- </group>
-}
+function RealCar({progress}){const {scene}=useGLTF('https://raw.githubusercontent.com/studio-public-demos/car-concept-3d-dashboard/main/CarConcept.glb');const root=useRef(),parts=useRef([]);useEffect(()=>{parts.current=[];scene.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;const n=o.name.toLowerCase();let type=/wheel|tire|rim/.test(n)?'wheel':/glass|window|windshield/.test(n)?'glass':/wing|spoiler|aero/.test(n)?'wing':/engine|motor|power/.test(n)?'engine':'body';parts.current.push({o,type,base:o.position.clone(),rot:o.rotation.clone()})}})},[scene]);useFrame((state,delta)=>{const p=progress.current,e=1-Math.pow(.001,delta),sep=THREE.MathUtils.clamp((p-.55)/.38,0,1),s=sep*sep*(3-2*sep);if(!root.current)return;root.current.rotation.y=THREE.MathUtils.lerp(root.current.rotation.y,-.45+p*Math.PI*2.05,e);root.current.position.y=THREE.MathUtils.lerp(root.current.position.y,.02+Math.sin(state.clock.elapsedTime*.7)*.018,e);root.current.scale.setScalar(2.15);const shots=[{a:0,b:.2,pos:[5.2,1.45,7.2],look:[0,.55,0],fov:37},{a:.2,b:.35,pos:[4.5,1.8,5.8],look:[0,.62,0],fov:40},{a:.35,b:.5,pos:[2.9,1.05,3.8],look:[0,.55,-.85],fov:31},{a:.5,b:.65,pos:[5.3,2.3,6],look:[0,.7,0],fov:42},{a:.65,b:.8,pos:[1.9,1.35,3.25],look:[0,.85,0],fov:34},{a:.8,b:.92,pos:[3,1.15,3.5],look:[0,.58,.55],fov:33},{a:.92,b:1,pos:[5,1.5,6.8],look:[0,.5,0],fov:37}];const shot=shots.find(x=>p>=x.a&&p<x.b)||shots[6];camera.position.x=THREE.MathUtils.lerp(camera.position.x,shot.pos[0],e);camera.position.y=THREE.MathUtils.lerp(camera.position.y,shot.pos[1],e);camera.position.z=THREE.MathUtils.lerp(camera.position.z,shot.pos[2],e);camera.fov=THREE.MathUtils.lerp(camera.fov,shot.fov,e);camera.updateProjectionMatrix();camera.lookAt(...shot.look);parts.current.forEach(({o,type,base,rot},i)=>{let x=base.x,y=base.y,z=base.z;if(type==='body'){y+=s*.12;z+=s*(i%2?.05:-.05)}if(type==='glass'){y+=s*.55;z-=s*.12}if(type==='wing'){y+=s*.9;z-=s*.28;x+=s*.12}if(type==='engine'){y+=s*.72;z+=s*.25;x-=s*.12}if(type==='wheel'){x+=s*(base.x>0?.32:-.32);z+=s*(base.z>0?.28:-.28);y+=s*.12;o.rotation.y=rot.y+(base.z>0?s*.12:-s*.12)}o.position.x=THREE.MathUtils.lerp(o.position.x,x,e);o.position.y=THREE.MathUtils.lerp(o.position.y,y,e);o.position.z=THREE.MathUtils.lerp(o.position.z,z,e)})});return <primitive ref={root} object={scene} dispose={null}/>}
+useGLTF.preload('https://raw.githubusercontent.com/studio-public-demos/car-concept-3d-dashboard/main/CarConcept.glb');
 
 function CinematicLights({progress}){const head=useRef(),brake=useRef(),engine=useRef();useFrame((state,delta)=>{const p=progress.current,e=1-Math.pow(.001,delta);const pulse=.82+Math.sin(state.clock.elapsedTime*5.5)*.12;if(head.current)head.current.intensity=THREE.MathUtils.lerp(head.current.intensity,p<.18?3.5:11,e);if(brake.current)brake.current.intensity=THREE.MathUtils.lerp(brake.current.intensity,p>.82?pulse*8:0,e);if(engine.current)engine.current.intensity=THREE.MathUtils.lerp(engine.current.intensity,p>.7?5:0,e)});return <><pointLight ref={head} position={[1.8,.9,2.3]} intensity={8} distance={6} color="#f7f7f2"/><pointLight ref={brake} position={[-1.8,.72,-1.8]} intensity={0} distance={4} color="#ff2018"/><pointLight ref={engine} position={[-.4,1.25,0]} intensity={0} distance={3.5} color="#d9d9d9"/></>}
 
