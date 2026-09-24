@@ -61,13 +61,27 @@ function ProceduralCar({progress}){
   camera.fov=THREE.MathUtils.lerp(camera.fov,shot.fov,e*1.5);
   camera.updateProjectionMatrix();
   camera.lookAt(shot.look[0],shot.look[1],shot.look[2]);
-  body.current.position.y=THREE.MathUtils.lerp(body.current.position.y,p>.6?(p-.6)*.62:0,e);
-  cabin.current.position.y=THREE.MathUtils.lerp(cabin.current.position.y,p>.6?(p-.6)*1.1:0,e);
-  wing.current.position.y=THREE.MathUtils.lerp(wing.current.position.y,p>.6?(p-.6)*1.55:0,e);
-  wing.current.rotation.z=THREE.MathUtils.lerp(wing.current.rotation.z,p>.6?-.14:0,e);
+  const sep=THREE.MathUtils.clamp((p-.58)/.34,0,1);
+  const s=sep*sep*(3-2*sep);
+  body.current.position.y=THREE.MathUtils.lerp(body.current.position.y,s*.38,e);
+  body.current.position.z=THREE.MathUtils.lerp(body.current.position.z,s*.12,e);
+  body.current.rotation.z=THREE.MathUtils.lerp(body.current.rotation.z,s*-.035,e);
+  cabin.current.position.y=THREE.MathUtils.lerp(cabin.current.position.y,s*.92,e);
+  cabin.current.position.z=THREE.MathUtils.lerp(cabin.current.position.z,s*-.18,e);
+  cabin.current.rotation.z=THREE.MathUtils.lerp(cabin.current.rotation.z,s*.045,e);
+  wing.current.position.y=THREE.MathUtils.lerp(wing.current.position.y,s*1.48,e);
+  wing.current.position.z=THREE.MathUtils.lerp(wing.current.position.z,s*-.32,e);
+  wing.current.rotation.z=THREE.MathUtils.lerp(wing.current.rotation.z,s*-.18,e);
   engine.current.scale.setScalar(THREE.MathUtils.lerp(engine.current.scale.x,p>.7?1:0.001,e));
+  engine.current.position.x=THREE.MathUtils.lerp(engine.current.position.x,p>.7?-.28:-.3,e);
  });
  return <group ref={root}>
+  <group position={[0,0,0]}>
+   <Aero position={[1.55,.42,.52]} rotation={[0,.08,-.05]} scale={[.9,1,1]}/>
+   <Aero position={[1.55,.42,-.52]} rotation={[0,-.08,-.05]} scale={[.9,1,1]}/>
+   <Aero position={[-1.45,.44,.58]} rotation={[0,.18,.03]} scale={[1.15,1,1]}/>
+   <Aero position={[-1.45,.44,-.58]} rotation={[0,-.18,.03]} scale={[1.15,1,1]}/>
+  </group>
   <group ref={body}>
    <mesh position={[0,.42,0]} scale={[2.65,.34,1.04]} castShadow><boxGeometry args={[1,1,1]}/><meshPhysicalMaterial color="#bfc1c2" metalness={.98} roughness={.11} clearcoat={1} clearcoatRoughness={.05}/></mesh>
    <mesh position={[.62,.54,0]} scale={[1.1,.23,.95]} rotation={[0,0,-.08]}><boxGeometry args={[1,1,1]}/><meshPhysicalMaterial color="#aeb1b2" metalness={.98} roughness={.1}/></mesh>
