@@ -49,3 +49,28 @@
 .scroll-hint:hover{transform:translateY(-3px)}
 @media(max-width:700px){.pointer-glow{width:180px;height:180px;margin:-90px 0 0 -90px;opacity:.1}}
 @media(pointer:coarse){.pointer-glow{display:none}}
+
+.powertrain-ui{
+ position:absolute;
+ right:6vw;
+ bottom:12vh;
+ display:flex;
+ align-items:center;
+ gap:14px;
+ padding:12px 16px;
+ border:1px solid rgba(255,255,255,.12);
+ background:rgba(5,5,5,.38);
+ backdrop-filter:blur(12px);
+ font-family:'DM Mono',monospace;
+}
+.powertrain-ui>div{display:flex;flex-direction:column;gap:4px}
+.powertrain-ui b{font-size:8px;letter-spacing:.2em;font-weight:500}
+.powertrain-ui small{font-size:7px;letter-spacing:.14em;color:#777}
+.powertrain-ui strong{font-size:11px;letter-spacing:.12em;font-weight:400}
+.powertrain-dot{
+ width:6px;height:6px;border-radius:50%;background:#eee;
+ box-shadow:0 0 12px rgba(255,255,255,.8);
+ animation:systemPulse 1.8s ease-in-out infinite;
+}
+@keyframes systemPulse{0%,100%{opacity:.35;transform:scale(.8)}50%{opacity:1;transform:scale(1.15)}}
+@media(max-width:700px){.powertrain-ui{right:20px;bottom:8vh;padding:10px 12px}.powertrain-ui strong{font-size:9px}}
