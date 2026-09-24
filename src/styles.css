@@ -23,3 +23,29 @@
 @media(max-width:700px){
  .scene-mode{right:20px;bottom:28px;font-size:7px}
 }
+
+.pointer-glow{
+ position:fixed;
+ left:50%;
+ top:50%;
+ width:260px;
+ height:260px;
+ margin:-130px 0 0 -130px;
+ border-radius:50%;
+ pointer-events:none;
+ z-index:4;
+ opacity:.16;
+ background:radial-gradient(circle,rgba(255,255,255,.22) 0%,rgba(255,255,255,.07) 24%,transparent 68%);
+ filter:blur(10px);
+ mix-blend-mode:screen;
+ transition:transform .16s cubic-bezier(.2,.8,.2,1);
+}
+.nav a,.menu,.scroll-hint,.hotspot,.contact-card a{
+ transition:opacity .3s ease,transform .35s cubic-bezier(.2,.8,.2,1),letter-spacing .35s ease;
+}
+.nav a:hover,.menu:hover{opacity:.55}
+.nav-links a:hover{letter-spacing:.08em}
+.menu:hover{transform:rotate(8deg)}
+.scroll-hint:hover{transform:translateY(-3px)}
+@media(max-width:700px){.pointer-glow{width:180px;height:180px;margin:-90px 0 0 -90px;opacity:.1}}
+@media(pointer:coarse){.pointer-glow{display:none}}
